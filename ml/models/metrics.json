@@ -1,0 +1,59 @@
+{
+    "best_model_name": "Random Forest Regressor",
+    "metrics": {
+        "Linear Regression": {
+            "MAE": 1107.57,
+            "MSE": 3915103.78,
+            "RMSE": 1978.66,
+            "R2": 0.717
+        },
+        "Decision Tree": {
+            "MAE": 788.41,
+            "MSE": 2668253.59,
+            "RMSE": 1633.48,
+            "R2": 0.8071
+        },
+        "Random Forest Regressor": {
+            "MAE": 573.54,
+            "MSE": 1302249.98,
+            "RMSE": 1141.16,
+            "R2": 0.9059
+        },
+        "Gradient Boosting": {
+            "MAE": 725.22,
+            "MSE": 1672870.72,
+            "RMSE": 1293.4,
+            "R2": 0.8791
+        }
+    },
+    "feature_columns": [
+        "year",
+        "crop_type",
+        "soil_type",
+        "soil_ph",
+        "nitrogen",
+        "phosphorus",
+        "potassium",
+        "temperature",
+        "rainfall",
+        "humidity",
+        "irrigation_level",
+        "sunshine_hours"
+    ],
+    "categorical_columns": [
+        "crop_type",
+        "soil_type",
+        "irrigation_level"
+    ],
+    "numerical_columns": [
+        "year",
+        "soil_ph",
+        "nitrogen",
+        "phosphorus",
+        "potassium",
+        "temperature",
+        "rainfall",
+        "humidity",
+        "sunshine_hours"
+    ]
+}
