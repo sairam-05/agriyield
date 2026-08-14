@@ -1,4 +1,9 @@
-const API_BASE_URL = `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:8000/api`;
+const API_BASE_URL = typeof window !== 'undefined' && (
+  window.location.hostname.endsWith('vercel.app') || 
+  window.location.protocol === 'https:'
+)
+  ? '/api'
+  : `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:8000/api`;
 
 export function getAuthToken() {
   return localStorage.getItem('agri_auth_token');
