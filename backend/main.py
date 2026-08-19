@@ -1,10 +1,16 @@
-from fastapi import FastAPI, Depends, HTTPException, Query, status
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-from typing import List, Dict, Any, Optional
-from datetime import datetime, timezone, timedelta
+import sys
 import os
 
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+
+from fastapi import FastAPI, Depends, HTTPException, Query, status
+from fastapi.middleware.cors import CORSMiddleware
+from datetime import datetime, timezone, timedelta
+from typing import List, Dict, Any, Optional
+from sqlalchemy.orm import Session
 from backend.database import get_db, engine, Base, ACCDB_PATH, PDF_STORAGE_DIR
 from backend.models import PredictionRecord, User, get_ist_now
 from backend import schemas
@@ -148,35 +154,41 @@ def predict_yield(
         prediction = ml_engine.predict_yield(data_dict)
         now_ist = get_ist_now()
         
-        # Only save prediction records to database if user is logged in
+        # Only save prediction records to database if user is logged in (handled gracefully if DB is locked)
         if current_user:
-            db_record = PredictionRecord(
-                user_id=current_user.id,
-                created_at=now_ist,
-                crop_type=payload.crop_type,
-                soil_type=payload.soil_type,
-                soil_ph=payload.soil_ph,
-                nitrogen=payload.nitrogen,
-                phosphorus=payload.phosphorus,
-                potassium=payload.potassium,
-                temperature=payload.temperature,
-                rainfall=payload.rainfall,
-                humidity=payload.humidity,
-                irrigation_level=payload.irrigation_level,
-                sunshine_hours=payload.sunshine_hours,
-                predicted_yield_kg_acre=prediction['predicted_yield_kg_acre'],
-                predicted_yield_tons_ha=prediction['predicted_yield_tons_ha'],
-                recommended_crop=prediction['recommended_crop'],
-                fertilizer_recommendation=prediction['fertilizer_recommendation'],
-                irrigation_recommendation=prediction['irrigation_recommendation'],
-                optimization_summary=prediction['optimization_summary']
-            )
-            db.add(db_record)
-            db.commit()
-            db.refresh(db_record)
-            
-            prediction['id'] = db_record.id
-            prediction['created_at'] = db_record.created_at
+            try:
+                db_record = PredictionRecord(
+                    user_id=current_user.id,
+                    created_at=now_ist,
+                    crop_type=payload.crop_type,
+                    soil_type=payload.soil_type,
+                    soil_ph=payload.soil_ph,
+                    nitrogen=payload.nitrogen,
+                    phosphorus=payload.phosphorus,
+                    potassium=payload.potassium,
+                    temperature=payload.temperature,
+                    rainfall=payload.rainfall,
+                    humidity=payload.humidity,
+                    irrigation_level=payload.irrigation_level,
+                    sunshine_hours=payload.sunshine_hours,
+                    predicted_yield_kg_acre=prediction['predicted_yield_kg_acre'],
+                    predicted_yield_tons_ha=prediction['predicted_yield_tons_ha'],
+                    recommended_crop=prediction['recommended_crop'],
+                    fertilizer_recommendation=prediction['fertilizer_recommendation'],
+                    irrigation_recommendation=prediction['irrigation_recommendation'],
+                    optimization_summary=prediction['optimization_summary']
+                )
+                db.add(db_record)
+                db.commit()
+                db.refresh(db_record)
+                
+                prediction['id'] = db_record.id
+                prediction['created_at'] = db_record.created_at
+            except Exception as db_err:
+                print(f"Warning: Could not save prediction record to database due to lock/file state: {db_err}")
+                db.rollback()
+                prediction['id'] = None
+                prediction['created_at'] = now_ist
         else:
             prediction['id'] = None
             prediction['created_at'] = now_ist
@@ -211,6 +223,8 @@ def risk_analysis(payload: Dict[str, Any]):
     try:
         crop = payload.get('crop_type', 'Wheat')
         risk_info = calculate_crop_risk_and_diseases(crop, payload)
+        rec_crop, rec_yield_kg, confidence = ml_engine.get_best_crop(payload, 0)
+        rec_risk = calculate_crop_risk_and_diseases(rec_crop, payload)
         
         all_matrix = []
         for c in CROPS_AGRONOMY.keys():
@@ -228,7 +242,14 @@ def risk_analysis(payload: Dict[str, Any]):
             "crop_type": crop,
             "risk_percent": risk_info["risk_percent"],
             "risk_level": risk_info["risk_level"],
+            "target_crop_risk_percent": risk_info["risk_percent"],
+            "target_crop_risk_level": risk_info["risk_level"],
             "diseases": risk_info["diseases"],
+            "target_crop_diseases": risk_info["diseases"],
+            "recommended_crop": rec_crop,
+            "recommended_crop_risk_percent": rec_risk["risk_percent"],
+            "recommended_crop_risk_level": rec_risk["risk_level"],
+            "recommended_crop_diseases": rec_risk["diseases"],
             "all_crops_risk_matrix": all_matrix
         }
     except Exception as e:

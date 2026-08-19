@@ -4,6 +4,7 @@ from datetime import datetime
 
 class YieldPredictionInput(BaseModel):
     crop_type: str = Field(..., example="Wheat")
+    is_seasonal_crop: Optional[str] = Field("Yes", example="Yes")
     soil_type: str = Field(..., example="Loam")
     soil_ph: float = Field(..., ge=3.5, le=10.0, example=6.5)
     nitrogen: float = Field(..., ge=0.0, le=500.0, example=120.0)
@@ -12,8 +13,8 @@ class YieldPredictionInput(BaseModel):
     temperature: float = Field(..., ge=-10.0, le=60.0, example=22.5)
     rainfall: float = Field(..., ge=0.0, le=5000.0, example=650.0)
     humidity: float = Field(..., ge=0.0, le=100.0, example=65.0)
-    irrigation_level: str = Field(..., example="Medium")
-    sunshine_hours: float = Field(..., ge=0.0, le=24.0, example=8.0)
+    irrigation_level: Optional[str] = Field("Medium", example="Medium")
+    sunshine_hours: Optional[float] = Field(8.0, ge=0.0, le=24.0, example=8.0)
 
 class DiseaseDetail(BaseModel):
     name: str
@@ -43,12 +44,23 @@ class YieldPredictionResponse(BaseModel):
     target_crop_risk_percent: Optional[float] = None
     target_crop_risk_level: Optional[str] = None
     target_crop_diseases: Optional[List[DiseaseDetail]] = None
+    target_crop_water_req_l_acre: Optional[float] = None
+    target_crop_water_req_l_ha: Optional[float] = None
+    target_crop_water_req_mm: Optional[float] = None
+    target_crop_duration_days: Optional[str] = None
+    target_crop_season_type: Optional[str] = None
+    target_crop_season_name: Optional[str] = None
+    seasonality_impact_note: Optional[str] = None
     market_price_inr_kg: Optional[float] = None
     estimated_gross_income_inr: Optional[float] = None
     recommended_crop: str
     recommended_crop_yield_kg_acre: Optional[float] = None
     recommended_crop_market_price_inr_kg: Optional[float] = None
     recommended_crop_income_inr: Optional[float] = None
+    recommended_crop_water_req_l_acre: Optional[float] = None
+    recommended_crop_water_req_l_ha: Optional[float] = None
+    recommended_crop_water_req_mm: Optional[float] = None
+    recommended_crop_duration_days: Optional[str] = None
     recommended_crop_risk_percent: Optional[float] = None
     recommended_crop_risk_level: Optional[str] = None
     recommended_crop_diseases: Optional[List[DiseaseDetail]] = None
@@ -57,6 +69,7 @@ class YieldPredictionResponse(BaseModel):
     irrigation_recommendation: str
     optimization_summary: str
     factor_impacts: Dict[str, str]
+    npk_analysis: Optional[Dict[str, Any]] = None
     all_crops_risk_matrix: Optional[List[CropRiskItem]] = None
     created_at: Optional[datetime] = None
 

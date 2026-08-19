@@ -67,9 +67,8 @@ export default function Dashboard({ setActiveTab, onSelectPreset, user, onOpenAu
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
         <MetricCard title="Total Predictions" value={summary?.total_predictions ?? 0} subtitle={user ? `Saved for ${user.full_name}` : 'Sign in to save'} icon={Layers} color="emerald" />
-        <MetricCard title="Avg Predicted Yield" value={summary?.avg_yield_kg_acre ?? 0} unit="kg/acre" subtitle={`~${summary?.avg_yield_tons_ha ?? 0} t/ha`} icon={TrendingUp} color="teal" />
         <MetricCard
           title="Best Model Accuracy"
           value={`${((metricsData?.metrics?.[metricsData?.best_model_name]?.R2 ?? 0.9059) * 100).toFixed(1)}%`}

@@ -9,10 +9,23 @@ ACCDB_PATH = r"C:\Users\sai\OneDrive\Documents\agriyield.accdb"
 PDF_STORAGE_DIR = r"C:\Users\sai\OneDrive\Documents\agriyield_pdfs"
 
 is_vercel = os.environ.get("VERCEL") == "1" or not os.name == "nt"
+db_url = os.environ.get("DATABASE_URL")
 
 engine = None
 
-if not is_vercel:
+if db_url:
+    try:
+        if db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql://", 1)
+        engine = create_engine(db_url, pool_pre_ping=True)
+        with engine.connect() as conn:
+            pass
+        print("[DATABASE NOTICE] Connected to persistent Cloud Database successfully!")
+    except Exception as e:
+        print(f"[DATABASE NOTICE] Cloud DB connection failed ({e}). Falling back...")
+        engine = None
+
+if engine is None and not is_vercel:
     try:
         os.makedirs(os.path.dirname(ACCDB_PATH), exist_ok=True)
         os.makedirs(PDF_STORAGE_DIR, exist_ok=True)

@@ -162,14 +162,26 @@ export default function Reports({ selectedPrediction: initialSelected, setActive
               </span>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
               <span className="text-xs text-emerald-100 uppercase block font-medium">PREDICTED YIELD</span>
-              <span className="text-2xl md:text-3xl font-black text-white">{report.predicted_yield_kg_acre} <span className="text-sm text-emerald-200">kg / acre</span></span>
+              <span className="text-xl md:text-2xl font-black text-white">{report.predicted_yield_kg_acre} <span className="text-xs text-emerald-200">kg / ac</span></span>
             </div>
             <div>
               <span className="text-xs text-emerald-100 uppercase block font-medium">METRIC EQUIVALENT</span>
-              <span className="text-2xl md:text-3xl font-black text-white">{report.predicted_yield_tons_ha} <span className="text-sm text-teal-200">tons / ha</span></span>
+              <span className="text-xl md:text-2xl font-black text-white">{report.predicted_yield_tons_ha} <span className="text-xs text-teal-200">t / ha</span></span>
+            </div>
+            <div>
+              <span className="text-xs text-emerald-100 uppercase block font-medium">WATER REQ. / ACRE</span>
+              <span className="text-lg md:text-xl font-black text-cyan-200">
+                {(report.target_crop_water_req_l_acre || Math.round((report.rainfall || 600) * 4046.86)).toLocaleString('en-IN')} <span className="text-[10px] text-cyan-100">L / ac</span>
+              </span>
+            </div>
+            <div>
+              <span className="text-xs text-emerald-100 uppercase block font-medium">CROP DURATION</span>
+              <span className="text-lg md:text-xl font-black text-amber-200">
+                {report.target_crop_duration_days || '120 - 135 Days'}
+              </span>
             </div>
           </div>
           <div className="text-xs text-emerald-50 border-t border-white/20 pt-2">
@@ -182,7 +194,7 @@ export default function Reports({ selectedPrediction: initialSelected, setActive
           <h3 className="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
             <TrendingUp className="w-4 h-4 text-emerald-600" /> 1. MARKET RATES & FINANCIAL REVENUE FORECAST
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
             <div className="data-box p-3 rounded-xl bg-slate-50 border border-slate-200">
               <span className="text-slate-500 block font-semibold uppercase text-[10px]">Current Mandi Price</span>
               <span className="text-base font-black text-slate-900">₹{report.market_price_inr_kg || 20} <span className="text-[10px] text-slate-500 font-normal">/ kg</span></span>
@@ -195,6 +207,12 @@ export default function Reports({ selectedPrediction: initialSelected, setActive
               <span className="text-teal-800 block font-semibold uppercase text-[10px]">Recommended ({report.recommended_crop}) Income</span>
               <span className="text-base font-black text-teal-800">
                 ₹{(report.recommended_crop_income_inr || (report.recommended_crop_yield_kg_acre ? report.recommended_crop_yield_kg_acre * 22.0 : report.predicted_yield_kg_acre * 25.0)).toLocaleString('en-IN')} <span className="text-[10px] text-teal-700 font-normal">/ ac</span>
+              </span>
+            </div>
+            <div className="data-box p-3 rounded-xl bg-cyan-50 border border-cyan-200">
+              <span className="text-cyan-800 block font-semibold uppercase text-[10px]">Water Required / Acre</span>
+              <span className="text-base font-black text-cyan-900">
+                {(report.target_crop_water_req_l_acre || Math.round((report.rainfall || 600) * 4046.86)).toLocaleString('en-IN')} <span className="text-[10px] text-cyan-700 font-normal">Liters</span>
               </span>
             </div>
           </div>
@@ -214,7 +232,7 @@ export default function Reports({ selectedPrediction: initialSelected, setActive
               ['Temperature', `${report.temperature} °C`],
               ['Annual Rainfall', `${report.rainfall} mm`],
               ['Humidity', `${report.humidity} %`],
-              ['Irrigation / Sun', `${report.irrigation_level} / ${report.sunshine_hours} hrs`],
+              ['Agronomic Status', 'Evaluated'],
             ].map(([label, val]) => (
               <div key={label} className="data-box p-2.5 rounded-lg bg-slate-50 border border-slate-200">
                 <span className="text-slate-500 block font-semibold">{label}</span>
@@ -257,9 +275,15 @@ export default function Reports({ selectedPrediction: initialSelected, setActive
             </div>
             <div className="data-box p-3.5 rounded-lg bg-teal-50 border border-teal-200 space-y-1">
               <h4 className="font-bold text-teal-800 uppercase flex items-center gap-1.5">
-                <Droplet className="w-3.5 h-3.5 text-teal-600" /> IRRIGATION SCHEDULE
+                <Droplet className="w-3.5 h-3.5 text-teal-600" /> IRRIGATION & WATER REQUIREMENT
               </h4>
               <p className="text-slate-700 leading-relaxed font-medium">{report.irrigation_recommendation}</p>
+              <p className="text-teal-900 font-bold text-[11px] pt-1">
+                💧 Seasonal Water Required / Acre: {(report.target_crop_water_req_l_acre || Math.round((report.rainfall || 600) * 4046.86)).toLocaleString('en-IN')} Liters ({report.target_crop_water_req_mm || 600} mm equiv.)
+              </p>
+              <p className="text-amber-900 font-bold text-[11px] pt-0.5">
+                ⏳ Crop Growth Duration (Days to Maturity): {report.target_crop_duration_days || '120 - 135 Days'}
+              </p>
             </div>
           </div>
         </div>
